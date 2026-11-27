@@ -1,5 +1,55 @@
 # ShowTrainer: offline memory trainer for MLB The Show 26 on Eden
 
+## What is this?
+
+ShowTrainer is a Windows program that lets you change things in **MLB The Show 26** while it runs in the
+**Eden** Switch emulator. It is built mainly for **Road to the Show** (your own career player), but it can edit any player in the league.
+
+It works by reading and changing the game's memory while you play, the same way classic "trainers" and cheat tools do.
+Changes you make show up in the game right away, and they stay once you save in-game.
+
+**It is for offline, single-player use only.** It does not touch online modes, and it does not change any game files.
+
+### What can you do with it?
+
+- **Training points / tokens:** set how many you have, or freeze the number so it never goes down.
+- **Your player's ratings:** contact, power, speed, fielding, every pitching rating, and so on.
+- **Any player's ratings:** look up anyone in the league (Judge, Ohtani, a minor leaguer) and change their ratings.
+- **Player settings:** change primary and secondary positions, pitching role (starter, reliever, closer), two-way player, and quirks (Dead Red, Rally Monkey and others).
+- **Player info:** see each player's jersey number, age, bats/throws, height and weight.
+- **Stats:** edit your season and career pitching stats (saves, wins, strikeouts, and more).
+- **Track your edits:** the game sometimes changes ratings on its own (progression, slumps). ShowTrainer remembers what you set and can put it back with one click.
+- **Compare the league:** take a "snapshot" of every player, sim some games, and see exactly what changed. You can also export all ratings to a spreadsheet.
+- **Undo:** every change is logged, and you can undo it.
+
+### Is it safe for my save?
+
+It tries hard to be:
+- It **offers to back up your save** before your first change (or press **Back up save now** any time).
+- Before every change it **checks that it's pointing at the right thing** (the right player, the right record). If anything looks off, for example during a loading screen, it refuses instead of guessing.
+- It only changes the exact bits it needs, so nearby values are left alone.
+
+Still, it's a memory editor: **keep your own backups**, and make changes while you're on the RTTS hub, not during a game or loading screen.
+
+### What you need
+
+- Windows 10 or 11
+- The Eden emulator, running MLB The Show 26 **v1.0.20** (other versions aren't supported yet)
+- The [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) to build it (or the .NET 8 Desktop Runtime if someone gives you a built copy)
+
+### Basic use
+
+1. Start Eden, boot the game and load your career. Wait until you're on the hub.
+2. Run `ShowTrainer.exe` and press **Attach**. It finds the game on its own.
+3. Pick a tab (**Targets** for your own player, **Players** for anyone), type the new value, and press **Apply**.
+4. Check it in the game, then **save in-game** so it sticks.
+
+ShowTrainer is a fan-made tool. It isn't made by, or connected to, Sony San Diego Studio, MLB, Nintendo or the Eden team.
+
+---
+
+# Technical details
+
 Single-player, offline use only. C# / .NET 8, WPF.
 
 ## Build / run
@@ -10,7 +60,7 @@ src\ShowTrainer.App\bin\Release\net8.0-windows\ShowTrainer.exe        # UI
 src\ShowTrainer.Cli\bin\Release\net8.0-windows\showtrainer-cli.exe detect   # headless check
 ```
 
-Logs: `Documents\ShowTrainer\logs\trainer.log`. Sessions: `Documents\ShowTrainer\sessions\`.
+Logs, sessions, snapshots, save backups and edit memory: `%LOCALAPPDATA%\ShowTrainer\`.
 
 ## How guest memory is found (Eden build 467ab6441a)
 
