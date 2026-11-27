@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0-windows</TargetFramework><AssemblyName>showtrainer-cli</AssemblyName></PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\ShowTrainer.Core\ShowTrainer.Core.csproj" /></ItemGroup>
+</Project>

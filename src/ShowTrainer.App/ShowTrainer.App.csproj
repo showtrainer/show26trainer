@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><UseWPF>true</UseWPF><AssemblyName>ShowTrainer</AssemblyName><ApplicationManifest>app.manifest</ApplicationManifest></PropertyGroup>
+  <ItemGroup><ProjectReference Include="..\ShowTrainer.Core\ShowTrainer.Core.csproj" /></ItemGroup>
+  <ItemGroup><Content Include="..\..\profiles\*.json" Link="profiles\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

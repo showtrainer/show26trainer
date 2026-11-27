@@ -1,0 +1,314 @@
+<Window x:Class="ShowTrainer.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ShowTrainer - MLB The Show 26 (Eden)" Height="860" Width="1280"
+        Closing="Window_Closing">
+  <DockPanel>
+    <!-- Process / game status -->
+    <Border DockPanel.Dock="Top" Background="#1F2937" Padding="6">
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Emulator:" Foreground="White" VerticalAlignment="Center" Margin="3"/>
+          <ComboBox x:Name="ProcessCombo" MinWidth="380" DisplayMemberPath="Display"/>
+          <Button Content="Refresh" Click="RefreshProcesses_Click"/>
+          <Button Content="Attach" Click="Attach_Click" FontWeight="Bold"/>
+          <Button Content="Re-detect" Click="Redetect_Click" ToolTip="Re-scan for guest memory, modules, heap and build ID"/>
+          <Button Content="Detach" Click="Detach_Click"/>
+        </StackPanel>
+        <WrapPanel Margin="3,4,3,0">
+          <TextBlock x:Name="ProcStatus" Foreground="#F87171" FontWeight="Bold" Margin="0,0,16,0" Text="Not attached"/>
+          <TextBlock x:Name="GameStatus" Foreground="#F87171" FontWeight="Bold" Margin="0,0,16,0" Text="Game: not detected"/>
+          <TextBlock x:Name="LayoutStatus" Foreground="#D1D5DB" FontFamily="Consolas"/>
+        </WrapPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Save backup reminder -->
+    <Border DockPanel.Dock="Top" Background="#FEF3C7" Padding="6" x:Name="BackupBanner">
+      <StackPanel Orientation="Horizontal">
+        <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="760">
+          <Run FontWeight="Bold">Back up your save before writing.</Run>
+          <Run>In Eden: right-click the game &gt; Open Save Data Location, and copy that folder somewhere safe. Writes to the wrong copy of a value can corrupt a Road to the Show save.</Run>
+        </TextBlock>
+          <Button Content="Back up save now" Click="Backup_Click" FontWeight="Bold"/>
+        <CheckBox x:Name="BackupAck" Content="I backed up my save" Margin="12,0" VerticalAlignment="Center" FontWeight="Bold"/>
+      </StackPanel>
+    </Border>
+
+    <StatusBar DockPanel.Dock="Bottom">
+      <StatusBarItem><TextBlock x:Name="StatusText" Text="Ready"/></StatusBarItem>
+      <StatusBarItem HorizontalAlignment="Right"><ProgressBar x:Name="Progress" Width="240" Height="14" Maximum="1"/></StatusBarItem>
+    </StatusBar>
+
+    <TabControl x:Name="Tabs">
+      <TabItem Header="Targets">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Top" Margin="3">
+            <Button Content="Apply all typed values" Click="ApplyAllTargets_Click" FontWeight="Bold"/>
+            <Button Content="Unfreeze all" Click="UnfreezeAll_Click"/>
+            <Button Content="Export cheat file..." Click="Export_Click"/>
+            <CheckBox x:Name="LinkCareer" Content="Adjust career totals with season stats" IsChecked="True" VerticalAlignment="Center" Margin="10,0"/>
+          </WrapPanel>
+          <DataGrid x:Name="TargetsGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" FontFamily="Consolas">
+            <DataGrid.GroupStyle>
+              <GroupStyle>
+                <GroupStyle.ContainerStyle>
+                  <Style TargetType="GroupItem">
+                    <Setter Property="Template">
+                      <Setter.Value>
+                        <ControlTemplate TargetType="GroupItem">
+                          <Expander IsExpanded="True">
+                            <Expander.Header><TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14" Margin="4"/></Expander.Header>
+                            <ItemsPresenter/>
+                          </Expander>
+                        </ControlTemplate>
+                      </Setter.Value>
+                    </Setter>
+                  </Style>
+                </GroupStyle.ContainerStyle>
+              </GroupStyle>
+            </DataGrid.GroupStyle>
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Name" Binding="{Binding Name, Mode=OneWay}" IsReadOnly="True" Width="210"/>
+              <DataGridTextColumn Header="Now" Binding="{Binding Live, Mode=OneWay}" IsReadOnly="True" Width="70"/>
+              <DataGridTemplateColumn Header="New value" Width="90">
+                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                  <TextBox Text="{Binding EditValue, UpdateSourceTrigger=PropertyChanged}" Margin="1"/>
+                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="" Width="80">
+                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                  <Button Content="Apply" Click="ApplyRow_Click" Margin="1" Padding="4,1"/>
+                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="Freeze" Width="60">
+                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                  <CheckBox IsChecked="{Binding Frozen, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Click="FreezeCheck_Click"/>
+                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Copy" Binding="{Binding Copy, Mode=OneWay}" IsReadOnly="True" Width="80"/>
+              <DataGridCheckBoxColumn Header="Proven" Binding="{Binding VerifiedPersists, Mode=OneWay}" IsReadOnly="True" Width="60"/>
+              <DataGridTextColumn Header="Status" Binding="{Binding Status, Mode=OneWay}" IsReadOnly="True" Width="180"/>
+              <DataGridTextColumn Header="Notes" Binding="{Binding Notes, Mode=OneWay}" IsReadOnly="True" Width="560"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="Players">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Top" Margin="3">
+            <TextBlock Text="Player name:" VerticalAlignment="Center" Margin="2,0"/>
+            <TextBox x:Name="PlayerSearch" Width="200" Margin="3" KeyDown="PlayerSearch_KeyDown"/>
+            <ComboBox x:Name="PositionFilter" Width="95" ToolTip="Only players whose primary position is this"/>
+            <ComboBox x:Name="PlayerSort" Width="120"/>
+            <Button Content="Find" Click="PlayerFind_Click" FontWeight="Bold" ToolTip="An empty name lists everyone"/>
+            <Button Content="Apply all typed ratings" Click="PlayerApplyAll_Click"/>
+            <Border Width="1" Background="#CBD5E1" Margin="8,2"/>
+            <TextBlock Text="Fill" VerticalAlignment="Center" Margin="2,0"/>
+            <ComboBox x:Name="FillGroup" Width="130"/>
+            <TextBlock Text="with" VerticalAlignment="Center" Margin="4,0"/>
+            <TextBox x:Name="FillValue" Width="50" Margin="3" ToolTip="A number 0-99, or +5 / -5 to change each rating relative to now"/>
+            <Button Content="Fill" Click="PlayerFill_Click" ToolTip="Types the value into the New value column only; nothing is written until you Apply"/>
+            <Button Content="Clear typed" Click="PlayerClearTyped_Click"/>
+            <Border Width="1" Background="#CBD5E1" Margin="8,2"/>
+            <Button Content="Snapshot player" Click="PlayerSnapshot_Click" ToolTip="Saves this player's ratings and settings to a file you can compare or restore later"/>
+            <Button Content="Compare / restore..." Click="PlayerRestore_Click"/>
+            <Button Content="Copy ratings from..." Click="PlayerCopyFrom_Click" ToolTip="Types another player's ratings into New value; nothing is written until you Apply"/>
+          </WrapPanel>
+          <TextBlock x:Name="PlayerStatus" DockPanel.Dock="Top" Margin="6,0,6,4" TextWrapping="Wrap" Text="Load your career, then search by any part of a name. In New value you can type a number, or +5 / -5."/>
+          <ListBox x:Name="PlayerList" DockPanel.Dock="Left" Width="250" DisplayMemberPath="Label" SelectionChanged="PlayerList_SelectionChanged"/>
+          <Border DockPanel.Dock="Right" Width="430" BorderBrush="#CBD5E1" BorderThickness="1,0,0,0" Padding="6,0,0,0">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="Player settings" FontWeight="Bold" FontSize="14"/>
+                <TextBlock x:Name="SettingsNote" TextWrapping="Wrap" Foreground="#4B5563" Margin="0,2,0,4"
+                           Text="Pick a player. Changed settings show in blue until you apply them."/>
+                <StackPanel Orientation="Horizontal">
+                  <Button Content="Apply settings" Click="PlayerApplySettings_Click" FontWeight="Bold"/>
+                  <Button Content="Discard changes" Click="PlayerRevertSettings_Click"/>
+                </StackPanel>
+              </StackPanel>
+              <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="SettingsPanel" Margin="0,4,4,4"/>
+              </ScrollViewer>
+            </DockPanel>
+          </Border>
+          <DataGrid x:Name="RatingsGrid" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" HeadersVisibility="Column" FontFamily="Consolas">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Group" Binding="{Binding Group, Mode=OneWay}" IsReadOnly="True" Width="80"/>
+              <DataGridTextColumn Header="Rating" Binding="{Binding Name, Mode=OneWay}" IsReadOnly="True" Width="150"/>
+              <DataGridTextColumn Header="Now" Binding="{Binding Live, Mode=OneWay}" IsReadOnly="True" Width="45"/>
+              <DataGridTemplateColumn Header="New value" Width="75">
+                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                  <TextBox Text="{Binding EditValue, UpdateSourceTrigger=PropertyChanged}" Margin="1"/>
+                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTemplateColumn Header="" Width="60">
+                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                  <Button Content="Apply" Click="PlayerApplyRow_Click" Margin="1" Padding="4,1"/>
+                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+              <DataGridTextColumn Header="Note" Binding="{Binding Note, Mode=OneWay}" IsReadOnly="True" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="My edits">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Top" Margin="3">
+            <Button Content="Check now" Click="MemoryRefresh_Click" FontWeight="Bold"/>
+            <Button Content="Re-apply all changed" Click="MemoryReapplyAll_Click"/>
+            <Button Content="Re-apply selected" Click="MemoryReapplySelected_Click"/>
+            <Button Content="Forget selected" Click="MemoryForget_Click" ToolTip="Stops tracking these edits; does not change the game"/>
+            <TextBlock x:Name="MemoryStatus" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"
+                       Text="Every player edit you make is remembered for this career, across launches. Check now shows which ones the game has changed since (progression, streaks, slumps)."/>
+          </WrapPanel>
+          <DataGrid x:Name="MemoryGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" FontFamily="Consolas" SelectionMode="Extended">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Player" Binding="{Binding Player, Mode=OneWay}" Width="170"/>
+              <DataGridTextColumn Header="Field" Binding="{Binding Field, Mode=OneWay}" Width="200"/>
+              <DataGridTextColumn Header="Your value" Binding="{Binding Wanted, Mode=OneWay}" Width="85"/>
+              <DataGridTextColumn Header="Now" Binding="{Binding Now, Mode=OneWay}" Width="70"/>
+              <DataGridTextColumn Header="Game's original" Binding="{Binding Original, Mode=OneWay}" Width="110"/>
+              <DataGridTextColumn Header="Edited" Binding="{Binding When, Mode=OneWay}" Width="120"/>
+              <DataGridTextColumn Header="State" Binding="{Binding State, Mode=OneWay}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="League">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Top" Margin="3">
+            <Button Content="Snapshot league" Click="LeagueSnapshot_Click" FontWeight="Bold" ToolTip="Saves every player's ratings and settings (read-only)"/>
+            <Button Content="Compare with snapshot..." Click="LeagueCompare_Click"/>
+            <Button Content="Export ratings CSV..." Click="LeagueCsv_Click"/>
+            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="10,0,2,0"/>
+            <TextBox x:Name="LeagueFilter" Width="160" Margin="3" TextChanged="LeagueFilter_TextChanged" ToolTip="Player or field name"/>
+            <TextBlock x:Name="LeagueStatus" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"
+                       Text="Snapshot the league, play or sim, then compare to see every rating and setting the game changed. Read-only."/>
+          </WrapPanel>
+          <DataGrid x:Name="LeagueGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" FontFamily="Consolas">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Player" Binding="{Binding Player, Mode=OneWay}" Width="200"/>
+              <DataGridTextColumn Header="Field" Binding="{Binding Field, Mode=OneWay}" Width="220"/>
+              <DataGridTextColumn Header="Snapshot" Binding="{Binding Then, Mode=OneWay}" Width="90"/>
+              <DataGridTextColumn Header="Now" Binding="{Binding Now, Mode=OneWay}" Width="90"/>
+              <DataGridTextColumn Header="Change" Binding="{Binding Delta, Mode=OneWay}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="History">
+        <DockPanel>
+          <WrapPanel DockPanel.Dock="Top" Margin="3">
+            <Button Content="Undo selected" Click="UndoSelected_Click" FontWeight="Bold"/>
+            <Button Content="Undo last" Click="UndoLast_Click"/>
+            <TextBlock x:Name="HistoryStatus" VerticalAlignment="Center" Margin="10,0" TextWrapping="Wrap"
+                       Text="Every value the trainer writes this launch (Targets and Players). Undo puts the old value back only if nothing else changed it since."/>
+          </WrapPanel>
+          <DataGrid x:Name="HistoryGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" FontFamily="Consolas" SelectionMode="Extended">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Time" Binding="{Binding Time, Mode=OneWay}" Width="75"/>
+              <DataGridTextColumn Header="Player / section" Binding="{Binding Target, Mode=OneWay}" Width="170"/>
+              <DataGridTextColumn Header="Field" Binding="{Binding Field, Mode=OneWay}" Width="200"/>
+              <DataGridTextColumn Header="Old" Binding="{Binding Old, Mode=OneWay}" Width="80"/>
+              <DataGridTextColumn Header="New" Binding="{Binding New, Mode=OneWay}" Width="80"/>
+              <DataGridTextColumn Header="Address" Binding="{Binding Address, Mode=OneWay}" Width="100"/>
+              <DataGridTextColumn Header="State" Binding="{Binding State, Mode=OneWay}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </TabItem>
+      <TabItem Header="Scanner">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+
+          <WrapPanel Grid.Row="0" Margin="3">
+            <Label Content="Type"/>
+            <ComboBox x:Name="KindCombo"/>
+            <Label Content="Compare"/>
+            <ComboBox x:Name="CompareCombo" MinWidth="120" SelectionChanged="CompareCombo_SelectionChanged"/>
+            <Label Content="Value"/>
+            <TextBox x:Name="Value1Box" Width="110"/>
+            <Label x:Name="Value2Label" Content="to"/>
+            <TextBox x:Name="Value2Box" Width="90"/>
+            <Label Content="Scope"/>
+            <ComboBox x:Name="ScopeCombo"/>
+            <Label Content="Align"/>
+            <TextBox x:Name="AlignBox" Width="34" Text="0" ToolTip="0 = natural alignment of the type"/>
+            <Label Content="Float tol"/>
+            <TextBox x:Name="TolBox" Width="60" ToolTip="Blank = half a unit of the last typed digit"/>
+            <Button x:Name="FirstScanBtn" Content="First scan" Click="FirstScan_Click" FontWeight="Bold"/>
+            <Button x:Name="NextScanBtn" Content="Next scan" Click="NextScan_Click" FontWeight="Bold" IsEnabled="False"/>
+            <Button Content="New scan" Click="NewScan_Click"/>
+            <Button x:Name="CancelBtn" Content="Cancel" Click="Cancel_Click" IsEnabled="False"/>
+            <TextBlock x:Name="ResultCount" VerticalAlignment="Center" Margin="10,0" FontWeight="Bold"/>
+          </WrapPanel>
+
+          <DataGrid Grid.Row="1" x:Name="ResultsGrid" AutoGenerateColumns="False" IsReadOnly="True"
+                    EnableRowVirtualization="True" FontFamily="Consolas" MouseDoubleClick="ResultsGrid_MouseDoubleClick"
+                    SelectionMode="Extended" HeadersVisibility="Column">
+            <DataGrid.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="Add selected to address list" Click="AddSelectedResults_Click"/>
+              </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Guest address" Binding="{Binding AddressText}" Width="120"/>
+              <DataGridTextColumn Header="Main offset" Binding="{Binding MainOffset}" Width="130"/>
+              <DataGridTextColumn Header="Heap offset" Binding="{Binding HeapOffset}" Width="130"/>
+              <DataGridTextColumn Header="At last scan" Binding="{Binding ScanValue}" Width="130"/>
+              <DataGridTextColumn Header="Current" Binding="{Binding Current}" Width="*"/>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" Background="#CBD5E1"/>
+
+          <DockPanel Grid.Row="3">
+            <WrapPanel DockPanel.Dock="Top" Margin="3">
+              <TextBlock Text="Address list" FontWeight="Bold" VerticalAlignment="Center" Margin="3,0,12,0"/>
+              <Button Content="Apply value to selected" Click="ApplySelected_Click"/>
+              <Button Content="Add address..." Click="AddManual_Click"/>
+              <Button Content="Remove" Click="RemoveEntry_Click"/>
+              <Separator Margin="6,0"/>
+              <Button Content="Save session..." Click="SaveSession_Click"/>
+              <Button Content="Load session..." Click="LoadSession_Click"/>
+            </WrapPanel>
+            <DataGrid x:Name="EntriesGrid" AutoGenerateColumns="False" CanUserAddRows="False" FontFamily="Consolas"
+                      HeadersVisibility="Column" SelectionMode="Extended">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Freeze" Width="52">
+                  <DataGridTemplateColumn.CellTemplate>
+                    <DataTemplate>
+                      <CheckBox IsChecked="{Binding Frozen, Mode=OneWay}" HorizontalAlignment="Center" Click="FreezeCheck_Click"/>
+                    </DataTemplate>
+                  </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="160"/>
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="100"/>
+                <DataGridComboBoxColumn x:Name="EntryKindColumn" Header="Type" SelectedItemBinding="{Binding Kind}" Width="70"/>
+                <DataGridTextColumn Header="Address" Binding="{Binding AddressText, Mode=OneWay}" IsReadOnly="True" Width="100"/>
+                <DataGridTextColumn Header="Location" Binding="{Binding Location, Mode=OneWay}" IsReadOnly="True" Width="190"/>
+                <DataGridTextColumn Header="Live value" Binding="{Binding Live, Mode=OneWay}" IsReadOnly="True" Width="90"/>
+                <DataGridTextColumn Header="New value" Binding="{Binding EditValue, UpdateSourceTrigger=PropertyChanged}" Width="90"/>
+                <DataGridComboBoxColumn x:Name="EntryCopyColumn" Header="Copy" SelectedItemBinding="{Binding Copy}" Width="90"/>
+                <DataGridCheckBoxColumn Header="Persists" Binding="{Binding VerifiedPersists}" Width="60"/>
+                <DataGridTextColumn Header="Notes" Binding="{Binding Notes}" Width="*"/>
+              </DataGrid.Columns>
+            </DataGrid>
+          </DockPanel>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Detection / Log">
+        <TextBox x:Name="LogBox" IsReadOnly="True" FontFamily="Consolas" FontSize="11" VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"/>
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</Window>
