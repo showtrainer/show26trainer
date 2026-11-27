@@ -45,6 +45,7 @@ Still, it's a memory editor: **keep your own backups**, and make changes while y
 4. Check it in the game, then **save in-game** so it sticks.
 
 ShowTrainer is a fan-made tool. It isn't made by, or connected to, Sony San Diego Studio, MLB, Nintendo or the Eden team.
+It's released under the [MIT License](LICENSE).
 
 ---
 

@@ -27,6 +27,9 @@ src\ShowTrainer.Cli\bin\Release\net8.0-windows\showtrainer-cli.exe detect
 - The CLI commands are `detect`, `check`, `set`, `export`, `cheatsim`, `players`, `pinfo`, `pset`, `psnap`, `pdiff`, `prestore`, `leaguesnap`, `leaguediff`, `leaguecsv`, `myedits`, `pdump`, and the scan commands `near`, `first`, `next`, `results`, `group`, `ptrscan`, `ptrcheck` and `hexdump`.
 - `pset "<full name>" "<field>" <value> --backed-up` needs exactly one name match. The field is a rating (0-99) or a setting label (`"Quirk: Dead Red" on`, `"Pitching role" CP`, `"Secondary RF" 1`, `"Two-way player" 1`, `"Primary position" RF`).
 - After editing the profile, copy `profiles/*.json` to the app's `bin/.../profiles`.
+- **GitHub:** `showtrainer/show26trainer` (remote `origin`, branch `main`; the repo uses Git Credential Manager). Release v1.0 published 2026-11-27.
+  To build a release: `dotnet publish src/ShowTrainer.App/ShowTrainer.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o release/ShowTrainer`.
+  Then add `release/ShowTrainer/README.txt` and zip with `C:\Windows\System32\tar.exe -a -c -f ShowTrainer-vX.Y-win-x64.zip ShowTrainer`. PowerShell 5.1 zips use backslash paths, so don't use them. `release/` is gitignored.
 - App data (logs, sessions, `snapshots/`, `save-backups/`, `edit-memory/`, `league/`) lives in `%LOCALAPPDATA%\ShowTrainer`. Documents is OneDrive-redirected, and old logs and one backup remain in `Documents\ShowTrainer` on OneDrive.
 
 ## Environment and ids
